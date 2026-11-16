@@ -27,7 +27,7 @@ import { AppError } from './shared/AppError.js'
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..')
 const versao = JSON.parse(readFileSync(join(raiz, 'package.json'), 'utf8')).version
 
-export function criarApp() {
+export function criarApp({ servirFrontend = true } = {}) {
   const env = obterEnv()
   const app = express()
 
@@ -49,7 +49,7 @@ export function criarApp() {
   // nao precisa ir ao banco buscar a sessao de ninguem.
   // O service worker sai sempre sem cache: com cache, o celular seguiria rodando
   // a versao antiga dele por horas depois de cada deploy.
-  if (env.producao) {
+  if (env.producao && servirFrontend) {
     app.use(
       express.static(join(raiz, 'dist'), {
         setHeaders(res, caminho) {
@@ -107,7 +107,7 @@ export function criarApp() {
 
   // O resto e rota do React Router (/produtos, /relatorios...): quem decide a
   // tela e o front, entao toda URL fora da /api recebe o index.html.
-  if (env.producao) {
+  if (env.producao && servirFrontend) {
     app.get('/{*caminho}', (_req, res) => res.sendFile(join(raiz, 'dist', 'index.html')))
   }
 
